@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Login Override
-// @version      0.3.1
+// @version      0.4.0
 // @description  Overrides the login function on a given website
 // @match        http://pass.sdu.edu.cn/cas/login*
 // @match        https://pass.sdu.edu.cn/cas/login*
@@ -29,15 +29,7 @@ const YOUR_CUSTOM_DEVICE_FINGERPRINT = "SOMETHING_UNIQUE";
   if (location.href.startsWith('https://webvpn.sdu.edu.cn/http/')) {
     location.href = location.href.replace('https://webvpn.sdu.edu.cn/http/', 'https://webvpn.sdu.edu.cn/https/')
   }
-  // Function to hash a string using SHA-256
-  function hashString(str) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(str);
-    const hashBuffer = crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
-  }
+
   // Override the login function
   function login() {
     var $u = $("#un"),
@@ -67,15 +59,19 @@ const YOUR_CUSTOM_DEVICE_FINGERPRINT = "SOMETHING_UNIQUE";
     $("#pl").val(p.length);
     $("#rsa").val(strEnc(u + p + lt, "1", "2", "3"));
     var details_s = YOUR_CUSTOM_DEVICE_FINGERPRINT;
+    var details_browser_s = YOUR_CUSTOM_DEVICE_FINGERPRINT;
     var murmur = YOUR_CUSTOM_DEVICE_FINGERPRINT;
-    var murmur_s = hashString(details_s);
+    var murmur_s = hex_md5(details_s);
     var murmur_md5 = hex_md5(details_s);
+    var browser_md5 = hex_md5(details_browser_s);
     $.post(
       "device",
       {
         d: murmur,
         d_s: murmur_s,
-        d_md5: murmur_md5,
+        d_md5: strEnc(murmur_md5, "1", "2", "3"),
+        d_browser_md5: strEnc(browser_md5, "1", "2", "3"),
+        i: strEnc(details_s, "1", "2", "3"),
         m: "1",
         u: strEnc(u, "1", "2", "3"),
         p: strEnc(p, "1", "2", "3"),
@@ -84,23 +80,26 @@ const YOUR_CUSTOM_DEVICE_FINGERPRINT = "SOMETHING_UNIQUE";
         if (ret.info == "validErr" || ret.info == "notFound") {
           location.reload();
         } else if (ret.info == "bind") {
-          //二次验证  绑定设备
+          // 二次验证 绑定设备
           $("#phone").val(ret.m);
-          phone(murmur_s, details_s);
+          if (typeof phone === "function") {
+            phone(murmur_s, details_s);
+          }
         } else if (ret.info == "mobileErr") {
-          //手机有误
+          // 手机有误
           $("#errormsg2").show().text("尚未绑定手机");
         } else if (ret.info == "binded" || ret.info == "pass") {
-          //直接提交
+          // 直接提交
           $("#loginForm")[0].submit();
         }
       },
       "json"
     ).error(function (xhr, status, info) {
-      if (is_weixin()) {
+      if (typeof is_weixin === 'function' && is_weixin()) {
       }
     });
   }
+
   // Override the original login function with the modified one
   window.login = login;
 })();
