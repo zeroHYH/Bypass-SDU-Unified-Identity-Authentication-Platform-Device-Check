@@ -34,11 +34,21 @@
 
 ## 使用方法
 
+一键安装（推荐）：[点击安装](https://raw.githubusercontent.com/zeroHYH/Bypass-SDU-Unified-Identity-Authentication-Platform-Device-Check/main/script.user.js)
+
+手动安装：
+
 1. 安装 [Tampermonkey](https://www.tampermonkey.net/) 或其他用户脚本管理器，并且按照其文档正确配置。
 2. 创建新脚本
-3. 将 `main.js` 中的内容复制到新脚本中
-4. 修改最上面的`YOUR_CUSTOM_DEVICE_FINGERPRINT`，作为你自定义的设备指纹
+3. 将 `script.user.js` 中的内容复制到新脚本中
+4. 修改最上面的`YOUR_CUSTOM_DEVICE_FINGERPRINT`，作为你自定义的设备指纹（默认使用学工号/登录账号作为指纹）
 5. 保存
+
+## 自动更新
+
+脚本已在元数据中配置了`@updateURL`和`@downloadURL`，并使用 `script.meta.js` 作为更新检查入口。
+当 `@version` 递增时，脚本管理器会提示更新并从 `@downloadURL` 下载新版本。
+如果你是手动复制安装的，建议在脚本管理器中开启自动更新。
 
 ## 注意事项
 
